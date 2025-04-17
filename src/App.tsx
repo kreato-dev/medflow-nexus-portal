@@ -15,6 +15,11 @@ import Appointments from "./pages/Appointments";
 import Patients from "./pages/Patients";
 import Doctors from "./pages/Doctors";
 import Analytics from "./pages/Analytics";
+import MedicalRecords from "./pages/MedicalRecords";
+import Messages from "./pages/Messages";
+import Claims from "./pages/Claims";
+import Billing from "./pages/Billing";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +87,46 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Analytics />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/records" 
+        element={
+          <ProtectedRoute>
+            <MedicalRecords />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/messages" 
+        element={
+          <ProtectedRoute>
+            <Messages />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/claims" 
+        element={
+          <ProtectedRoute>
+            <Claims />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/billing" 
+        element={
+          <ProtectedRoute>
+            <Billing />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/settings" 
+        element={
+          <ProtectedRoute>
+            <Settings />
           </ProtectedRoute>
         } 
       />
