@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -94,6 +95,27 @@
     --sidebar-border: 217.2 32.6% 17.5%;
     --sidebar-ring: 196 90% 55%;
   }
+
+  /* Color blind mode - protanopia friendly */
+  .color-blind {
+    --primary: 215 90% 50%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 220 65% 40%;
+    --secondary-foreground: 210 40% 98%;
+
+    --accent: 245 85% 45%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 220 70% 50%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 245 70% 50%;
+    --success-foreground: 210 40% 98%;
+
+    --warning: 215 92% 60%;
+    --warning-foreground: 210 40% 98%;
+  }
 }
 
 @layer base {
@@ -103,5 +125,59 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Accessibility enhancements for various vision needs */
+.high-contrast {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
+  --border: 0 0% 0%;
+  --primary: 240 100% 50%;
+  --primary-foreground: 0 0% 100%;
+  --destructive: 0 100% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 120 100% 25%;
+  --success-foreground: 0 0% 100%;
+  --warning: 40 100% 50%;
+  --warning-foreground: 0 0% 0%;
+}
+
+@media print {
+  .print\:hidden {
+    display: none !important;
+  }
+  
+  .print\:p-8 {
+    padding: 2rem !important;
+  }
+  
+  body {
+    background-color: white;
+    color: black;
+    font-size: 12pt;
+  }
+  
+  a {
+    text-decoration: none !important;
+    color: inherit !important;
+  }
+}
+
+/* Focus outline for improved keyboard navigation */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Reduces motion for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

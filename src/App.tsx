@@ -18,8 +18,13 @@ import Analytics from "./pages/Analytics";
 import MedicalRecords from "./pages/MedicalRecords";
 import Messages from "./pages/Messages";
 import Claims from "./pages/Claims";
+import ClaimDetails from "./pages/ClaimDetails";
+import PatientProfile from "./pages/PatientProfile";
+import DoctorProfile from "./pages/DoctorProfile";
+import Notifications from "./pages/Notifications";
 import Billing from "./pages/Billing";
 import Settings from "./pages/Settings";
+import { ThemeProvider } from "@/components/ui/theme-provider";
 
 const queryClient = new QueryClient();
 
@@ -108,6 +113,42 @@ const AppRoutes = () => {
       />
       
       <Route 
+        path="/claims/:claimId" 
+        element={
+          <ProtectedRoute>
+            <ClaimDetails />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/patients/:patientId" 
+        element={
+          <ProtectedRoute>
+            <PatientProfile />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/doctors/:doctorId" 
+        element={
+          <ProtectedRoute>
+            <DoctorProfile />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/notifications" 
+        element={
+          <ProtectedRoute>
+            <Notifications />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
         path="/settings" 
         element={
           <ProtectedRoute>
@@ -164,15 +205,17 @@ const AppRoutes = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+    <ThemeProvider defaultTheme="system" storageKey="medflow-theme">
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

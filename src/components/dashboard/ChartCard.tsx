@@ -17,15 +17,16 @@ interface ChartData {
 interface ChartCardProps {
   title: string;
   description?: string;
-  chartType: 'line' | 'bar';
-  data: ChartData;
+  chartType?: 'line' | 'bar';
+  data?: ChartData;
   className?: string;
   action?: React.ReactNode;
+  children?: React.ReactNode;
 }
 
-export function ChartCard({ title, description, chartType, data, className, action }: ChartCardProps) {
+export function ChartCard({ title, description, chartType, data, className, action, children }: ChartCardProps) {
   // Transform the data into the format expected by Recharts
-  const chartData = data.labels.map((label, index) => {
+  const chartData = data?.labels.map((label, index) => {
     const dataPoint: Record<string, any> = { name: label };
     
     data.datasets.forEach(dataset => {
@@ -36,6 +37,8 @@ export function ChartCard({ title, description, chartType, data, className, acti
   });
   
   const renderChart = () => {
+    if (!data || !chartType) return children;
+    
     if (chartType === 'line') {
       return (
         <ResponsiveContainer width="100%" height={300}>
@@ -90,7 +93,7 @@ export function ChartCard({ title, description, chartType, data, className, acti
         </div>
         {action}
       </CardHeader>
-      <CardContent className="p-4">
+      <CardContent className={cn("p-4", !data && "p-0")}>
         {renderChart()}
       </CardContent>
     </Card>

@@ -5,13 +5,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Home, ArrowLeft } from 'lucide-react';
 
-const NotFound = () => {
+const NotFound = ()=>{
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   
   // Automatic redirect after 10 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => {
+  useEffect(()=>{
+    const timer = setTimeout(()=>{
       if (isAuthenticated) {
         navigate('/dashboard');
       } else {
@@ -19,7 +19,7 @@ const NotFound = () => {
       }
     }, 10000);
     
-    return () => clearTimeout(timer);
+    return ()=>clearTimeout(timer);
   }, [isAuthenticated, navigate]);
   
   return (
