@@ -1,5 +1,6 @@
 
 import { cn } from '@/lib/utils';
+import { LucideIcon } from 'lucide-react';
 
 interface StatCardProps {
   title: string;
@@ -8,12 +9,12 @@ interface StatCardProps {
     value: number;
     isPositive: boolean;
   };
-  icon: React.ReactNode;
+  icon: LucideIcon;
   className?: string;
   description?: string;
 }
 
-export function StatCard({ title, value, change, icon, className, description }: StatCardProps) {
+export function StatCard({ title, value, change, icon: Icon, className, description }: StatCardProps) {
   return (
     <div className={cn("relative bg-card rounded-lg shadow-sm p-6 overflow-hidden", className)}>
       <div className="flex justify-between items-start">
@@ -41,7 +42,7 @@ export function StatCard({ title, value, change, icon, className, description }:
         </div>
         
         <div className="p-2 rounded-full bg-primary/10 text-primary">
-          {icon}
+          <Icon size={20} />
         </div>
       </div>
       
