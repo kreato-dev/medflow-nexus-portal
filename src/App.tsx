@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +12,9 @@ import Register from "./pages/auth/Register";
 import ResetPassword from "./pages/auth/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Appointments from "./pages/Appointments";
+import Patients from "./pages/Patients";
+import Doctors from "./pages/Doctors";
+import Analytics from "./pages/Analytics";
 
 const queryClient = new QueryClient();
 
@@ -35,7 +39,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/" element={<Index />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/reset-password" element={<ResetPassword />} />
@@ -54,6 +58,30 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Appointments />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/patients" 
+        element={
+          <ProtectedRoute>
+            <Patients />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/doctors" 
+        element={
+          <ProtectedRoute>
+            <Doctors />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/analytics" 
+        element={
+          <ProtectedRoute>
+            <Analytics />
           </ProtectedRoute>
         } 
       />
