@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -15,7 +14,9 @@ import {
   TrendingUp, 
   DollarSign,
   CheckCircle,
-  UserPlus
+  UserPlus,
+  Stethoscope,
+  MessageSquare
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -38,7 +39,6 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 
-// Mock data for charts
 const appointmentData = [
   { name: 'Mon', count: 12 },
   { name: 'Tue', count: 18 },
@@ -121,7 +121,6 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [timeframe, setTimeframe] = useState('weekly');
   
-  // Role-based content and stats
   const getStatsByRole = () => {
     switch(user?.role) {
       case 'admin':
@@ -144,19 +143,33 @@ const Dashboard = () => {
           { title: 'Upcoming Appointments', value: '3', icon: <Calendar className="h-6 w-6" /> },
           { title: 'Last Checkup', value: '2 weeks ago', icon: <CheckCircle className="h-6 w-6" /> },
           { title: 'Prescriptions', value: '4 active', icon: <FileText className="h-6 w-6" /> },
-          { title: 'Messages', value: '2 unread', icon: <Heart className="h-6 w-6" /> },
+          { title: 'Messages', value: '2 unread', icon: <MessageSquare className="h-6 w-6" /> },
         ];
     }
   };
   
   const stats = getStatsByRole();
+
+  const getAvailableTabs = () => {
+    if (user?.role === 'admin') {
+      return ['overview', 'appointments', 'patients', 'doctors', 'revenue'];
+    } else if (user?.role === 'doctor') {
+      return ['overview', 'appointments', 'patients'];
+    } else {
+      return ['overview', 'appointments', 'doctors'];
+    }
+  };
+
+  const tabs = getAvailableTabs();
   
   return (
     <MainLayout>
       <div className="space-y-6">
-        {/* Page Header */}
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {user?.role === 'admin' ? 'Admin Dashboard' : 
+             user?.role === 'doctor' ? 'Doctor Dashboard' : 'Patient Dashboard'}
+          </h1>
           
           <div className="flex items-center space-x-2">
             <Select defaultValue={timeframe} onValueChange={setTimeframe}>
@@ -177,84 +190,199 @@ const Dashboard = () => {
           </div>
         </div>
         
-        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => (
             <StatCard key={index} {...stat} />
           ))}
         </div>
         
-        {/* Charts Section */}
-        <Tabs defaultValue="overview" className="space-y-4">
+        <Tabs defaultValue={tabs[0]} className="space-y-4">
           <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="appointments">Appointments</TabsTrigger>
-            <TabsTrigger value="patients">Patients</TabsTrigger>
-            {user?.role === 'admin' && (
-              <TabsTrigger value="revenue">Revenue</TabsTrigger>
-            )}
+            {tabs.includes('overview') && <TabsTrigger value="overview">Overview</TabsTrigger>}
+            {tabs.includes('appointments') && <TabsTrigger value="appointments">Appointments</TabsTrigger>}
+            {tabs.includes('patients') && <TabsTrigger value="patients">Patients</TabsTrigger>}
+            {tabs.includes('doctors') && <TabsTrigger value="doctors">Doctors</TabsTrigger>}
+            {tabs.includes('revenue') && <TabsTrigger value="revenue">Revenue</TabsTrigger>}
           </TabsList>
           
           <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Appointments Chart */}
-              <ChartCard
-                title="Appointments Trend"
-                description="Weekly appointments distribution"
-              >
-                <div className="p-6 h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={appointmentData}
-                      margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                      <XAxis dataKey="name" tickLine={false} />
-                      <YAxis tickLine={false} axisLine={false} />
-                      <Tooltip />
-                      <Area 
-                        type="monotone" 
-                        dataKey="count" 
-                        stroke="hsl(var(--primary))" 
-                        fill="hsl(var(--primary))" 
-                        fillOpacity={0.2} 
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </ChartCard>
-              
-              {/* Patient Growth Chart */}
-              <ChartCard
-                title="Patient Growth"
-                description="Monthly patient acquisition"
-              >
-                <div className="p-6 h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={patientGrowthData}
-                      margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                      <XAxis dataKey="date" tickLine={false} />
-                      <YAxis tickLine={false} axisLine={false} />
-                      <Tooltip />
-                      <Area 
-                        type="monotone" 
-                        dataKey="count" 
-                        stroke="hsl(var(--secondary))" 
-                        fill="hsl(var(--secondary))" 
-                        fillOpacity={0.2} 
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </ChartCard>
-            </div>
+            {user?.role === 'patient' && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <ChartCard
+                  title="Your Health Timeline"
+                  description="Recent appointments and checkups"
+                >
+                  <div className="p-6 h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={[
+                          { date: 'Jan', value: 70 },
+                          { date: 'Feb', value: 75 },
+                          { date: 'Mar', value: 72 },
+                          { date: 'Apr', value: 80 },
+                          { date: 'May', value: 85 },
+                          { date: 'Jun', value: 82 },
+                          { date: 'Jul', value: 88 },
+                        ]}
+                        margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                        <XAxis dataKey="date" tickLine={false} />
+                        <YAxis tickLine={false} axisLine={false} />
+                        <Tooltip />
+                        <Area 
+                          type="monotone" 
+                          dataKey="value" 
+                          name="Health Score"
+                          stroke="hsl(var(--primary))" 
+                          fill="hsl(var(--primary))" 
+                          fillOpacity={0.2} 
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </ChartCard>
+                
+                <ChartCard
+                  title="Upcoming Treatments"
+                  description="Your scheduled medical activities"
+                >
+                  <div className="divide-y divide-border">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center p-4">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+                          <Stethoscope className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium">
+                            {i === 1 ? 'General Checkup' : i === 2 ? 'Blood Work' : 'Cardiology Consultation'}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {i === 1 ? 'Tomorrow, 10:00 AM' : i === 2 ? 'July 28, 9:30 AM' : 'August 5, 2:00 PM'}
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm">View</Button>
+                      </div>
+                    ))}
+                  </div>
+                </ChartCard>
+              </div>
+            )}
+            
+            {user?.role === 'doctor' && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <ChartCard
+                  title="Your Schedule"
+                  description="Appointments this week"
+                >
+                  <div className="p-6 h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={appointmentData}
+                        margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                        <XAxis dataKey="name" tickLine={false} />
+                        <YAxis tickLine={false} axisLine={false} />
+                        <Tooltip />
+                        <Bar 
+                          dataKey="count" 
+                          name="Appointments" 
+                          fill="hsl(var(--primary))" 
+                          radius={[4, 4, 0, 0]} 
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </ChartCard>
+                
+                <ChartCard
+                  title="Patient Distribution"
+                  description="Categorized by treatment type"
+                >
+                  <div className="p-6 h-[300px] flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={specialtiesData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {specialtiesData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </ChartCard>
+              </div>
+            )}
             
             {user?.role === 'admin' && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Revenue Chart */}
+                <ChartCard
+                  title="Appointments Trend"
+                  description="Weekly appointments distribution"
+                >
+                  <div className="p-6 h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={appointmentData}
+                        margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                        <XAxis dataKey="name" tickLine={false} />
+                        <YAxis tickLine={false} axisLine={false} />
+                        <Tooltip />
+                        <Area 
+                          type="monotone" 
+                          dataKey="count" 
+                          stroke="hsl(var(--primary))" 
+                          fill="hsl(var(--primary))" 
+                          fillOpacity={0.2} 
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </ChartCard>
+                
+                <ChartCard
+                  title="Patient Growth"
+                  description="Monthly patient acquisition"
+                >
+                  <div className="p-6 h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={patientGrowthData}
+                        margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                        <XAxis dataKey="date" tickLine={false} />
+                        <YAxis tickLine={false} axisLine={false} />
+                        <Tooltip />
+                        <Area 
+                          type="monotone" 
+                          dataKey="count" 
+                          stroke="hsl(var(--secondary))" 
+                          fill="hsl(var(--secondary))" 
+                          fillOpacity={0.2} 
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </ChartCard>
+              </div>
+            )}
+            
+            {user?.role === 'admin' && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <ChartCard
                   title="Revenue Overview"
                   description="Monthly revenue vs. expenses"
@@ -287,7 +415,6 @@ const Dashboard = () => {
                   </div>
                 </ChartCard>
                 
-                {/* Specialties Distribution */}
                 <ChartCard
                   title="Specialties Distribution"
                   description="Patient distribution by specialty"
@@ -434,6 +561,50 @@ const Dashboard = () => {
                       />
                     </AreaChart>
                   </ResponsiveContainer>
+                </div>
+              </ChartCard>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="doctors">
+            <div className="grid grid-cols-1 gap-4">
+              <ChartCard title="Available Doctors" className="w-full">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <Card key={i} className="overflow-hidden">
+                      <div className="p-4 flex flex-col h-full">
+                        <div className="flex items-center space-x-4 mb-4">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={`https://ui-avatars.com/api/?name=Doctor+${i}&background=0D8ABC&color=fff`} />
+                            <AvatarFallback>DR{i}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h3 className="text-lg font-medium">Dr. Name {i}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {i % 3 === 0 ? 'Cardiologist' : i % 3 === 1 ? 'Pediatrician' : 'Neurologist'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-sm mb-4 flex-1">
+                          <p className="mb-2">
+                            <span className="font-medium">Experience:</span> {5 + i} years
+                          </p>
+                          <p className="mb-2">
+                            <span className="font-medium">Patients:</span> {100 + (i * 20)}+
+                          </p>
+                          <p>
+                            <span className="font-medium">Languages:</span> English
+                            {i % 2 === 0 ? ', Spanish' : ''}
+                          </p>
+                        </div>
+                        <div className="mt-auto">
+                          <Button className="w-full">
+                            {user?.role === 'admin' ? 'View Profile' : 'Book Appointment'}
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
                 </div>
               </ChartCard>
             </div>

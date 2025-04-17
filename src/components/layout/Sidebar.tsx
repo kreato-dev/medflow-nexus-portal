@@ -14,7 +14,11 @@ import {
   BadgeAlert, 
   BarChartBig,
   Heart,
-  X
+  X,
+  FileText,
+  Stethoscope,
+  User,
+  Activity
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
@@ -31,67 +35,175 @@ type SidebarLink = {
   roles: UserRole[];
 };
 
-// Define sidebar sections
-const sidebarLinks: SidebarLink[] = [
+// Define sidebar section types
+type SidebarSection = {
+  title: string;
+  links: SidebarLink[];
+};
+
+// Define sidebar sections based on user roles
+const patientLinks: SidebarLink[] = [
   {
     title: 'Dashboard',
     path: '/dashboard',
     icon: <Home className="h-5 w-5" />,
-    roles: ['admin', 'doctor', 'patient'],
+    roles: ['patient'],
   },
   {
-    title: 'Appointments',
+    title: 'My Appointments',
     path: '/appointments',
     icon: <Calendar className="h-5 w-5" />,
-    roles: ['admin', 'doctor', 'patient'],
+    roles: ['patient'],
   },
   {
-    title: 'Patients',
-    path: '/patients',
-    icon: <Users className="h-5 w-5" />,
-    roles: ['admin', 'doctor'],
-  },
-  {
-    title: 'Doctors',
+    title: 'Find Doctors',
     path: '/doctors',
-    icon: <BadgeAlert className="h-5 w-5" />,
-    roles: ['admin', 'patient'],
+    icon: <Stethoscope className="h-5 w-5" />,
+    roles: ['patient'],
   },
   {
-    title: 'Medical Records',
+    title: 'My Medical Records',
     path: '/records',
     icon: <ClipboardList className="h-5 w-5" />,
-    roles: ['admin', 'doctor', 'patient'],
+    roles: ['patient'],
   },
   {
     title: 'Messages',
     path: '/messages',
     icon: <MessageSquare className="h-5 w-5" />,
-    roles: ['admin', 'doctor', 'patient'],
+    roles: ['patient'],
+  },
+  {
+    title: 'My Claims',
+    path: '/claims',
+    icon: <FileText className="h-5 w-5" />,
+    roles: ['patient'],
+  },
+  {
+    title: 'Billing & Payments',
+    path: '/billing',
+    icon: <CreditCard className="h-5 w-5" />,
+    roles: ['patient'],
+  },
+  {
+    title: 'My Profile',
+    path: '/settings',
+    icon: <User className="h-5 w-5" />,
+    roles: ['patient'],
+  },
+];
+
+const doctorLinks: SidebarLink[] = [
+  {
+    title: 'Dashboard',
+    path: '/dashboard',
+    icon: <Home className="h-5 w-5" />,
+    roles: ['doctor'],
+  },
+  {
+    title: 'My Schedule',
+    path: '/appointments',
+    icon: <Calendar className="h-5 w-5" />,
+    roles: ['doctor'],
+  },
+  {
+    title: 'My Patients',
+    path: '/patients',
+    icon: <Users className="h-5 w-5" />,
+    roles: ['doctor'],
+  },
+  {
+    title: 'Medical Records',
+    path: '/records',
+    icon: <ClipboardList className="h-5 w-5" />,
+    roles: ['doctor'],
+  },
+  {
+    title: 'Messages',
+    path: '/messages',
+    icon: <MessageSquare className="h-5 w-5" />,
+    roles: ['doctor'],
+  },
+  {
+    title: 'Claims Management',
+    path: '/claims',
+    icon: <FileText className="h-5 w-5" />,
+    roles: ['doctor'],
+  },
+  {
+    title: 'Analytics',
+    path: '/analytics',
+    icon: <Activity className="h-5 w-5" />,
+    roles: ['doctor'],
+  },
+  {
+    title: 'My Profile',
+    path: '/settings',
+    icon: <User className="h-5 w-5" />,
+    roles: ['doctor'],
+  },
+];
+
+const adminLinks: SidebarLink[] = [
+  {
+    title: 'Dashboard',
+    path: '/dashboard',
+    icon: <Home className="h-5 w-5" />,
+    roles: ['admin'],
+  },
+  {
+    title: 'Appointments',
+    path: '/appointments',
+    icon: <Calendar className="h-5 w-5" />,
+    roles: ['admin'],
+  },
+  {
+    title: 'Patients',
+    path: '/patients',
+    icon: <Users className="h-5 w-5" />,
+    roles: ['admin'],
+  },
+  {
+    title: 'Doctors',
+    path: '/doctors',
+    icon: <BadgeAlert className="h-5 w-5" />,
+    roles: ['admin'],
+  },
+  {
+    title: 'Medical Records',
+    path: '/records',
+    icon: <ClipboardList className="h-5 w-5" />,
+    roles: ['admin'],
+  },
+  {
+    title: 'Messages',
+    path: '/messages',
+    icon: <MessageSquare className="h-5 w-5" />,
+    roles: ['admin'],
   },
   {
     title: 'Claims',
     path: '/claims',
-    icon: <CreditCard className="h-5 w-5" />,
-    roles: ['admin', 'doctor', 'patient'],
+    icon: <FileText className="h-5 w-5" />,
+    roles: ['admin'],
   },
   {
     title: 'Analytics',
     path: '/analytics',
     icon: <BarChartBig className="h-5 w-5" />,
-    roles: ['admin', 'doctor'],
+    roles: ['admin'],
   },
   {
     title: 'Billing',
     path: '/billing',
     icon: <CreditCard className="h-5 w-5" />,
-    roles: ['admin', 'patient'],
+    roles: ['admin'],
   },
   {
     title: 'Settings',
     path: '/settings',
     icon: <Settings className="h-5 w-5" />,
-    roles: ['admin', 'doctor', 'patient'],
+    roles: ['admin'],
   },
 ];
 
@@ -101,10 +213,23 @@ export function Sidebar() {
   const [isOpen, setIsOpen] = useState(!isMobile);
   const { pathname } = useLocation();
 
-  // Filter links based on user role
-  const filteredLinks = user 
-    ? sidebarLinks.filter(link => link.roles.includes(user.role))
-    : [];
+  // Get the appropriate links based on user role
+  const getLinksByRole = (): SidebarLink[] => {
+    if (!user) return [];
+    
+    switch (user.role) {
+      case 'admin':
+        return adminLinks;
+      case 'doctor':
+        return doctorLinks;
+      case 'patient':
+        return patientLinks;
+      default:
+        return [];
+    }
+  };
+
+  const filteredLinks = getLinksByRole();
 
   return (
     <>

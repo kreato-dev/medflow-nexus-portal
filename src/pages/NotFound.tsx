@@ -1,55 +1,120 @@
 
-import { useLocation, Link } from "react-router-dom";
-import { useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Home, ArrowLeft } from "lucide-react";
+import { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { Home, ArrowLeft } from 'lucide-react';
 
 const NotFound = () => {
-  const location = useLocation();
-  const { isAuthenticated } = useAuth();
-
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
+  
+  // Automatic redirect after 10 seconds
   useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname
-    );
-  }, [location.pathname]);
-
+    const timer = setTimeout(() => {
+      if (isAuthenticated) {
+        navigate('/dashboard');
+      } else {
+        navigate('/');
+      }
+    }, 10000);
+    
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, navigate]);
+  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center max-w-md px-4">
-        <h1 className="text-6xl font-bold text-primary mb-4">404</h1>
-        <p className="text-xl text-foreground mb-6">Oops! Page not found</p>
-        <p className="text-muted-foreground mb-8">
-          The page you are looking for might have been removed, had its name
-          changed, or is temporarily unavailable.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          {isAuthenticated ? (
-            <>
-              <Button asChild variant="default" className="gap-2">
-                <Link to="/dashboard">
-                  <Home className="h-4 w-4" />
-                  Go to Dashboard
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="gap-2">
-                <Link to={-1 as any}>
-                  <ArrowLeft className="h-4 w-4" />
-                  Go Back
-                </Link>
-              </Button>
-            </>
-          ) : (
-            <Button asChild variant="default" className="gap-2">
-              <Link to="/login">
-                <Home className="h-4 w-4" />
-                Back to Login
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="max-w-md w-full space-y-8 text-center">
+        <div className="flex flex-col items-center justify-center">
+          <div className="bg-warning/10 p-3 rounded-full mb-4">
+            <ExclamationTriangleIcon className="h-12 w-12 text-warning" />
+          </div>
+          <h1 className="text-4xl font-bold tracking-tighter">404</h1>
+          <h2 className="text-2xl font-semibold mt-2">Page Not Found</h2>
+          <p className="text-muted-foreground mt-4">
+            The page you're looking for doesn't exist or has been moved.
+          </p>
+          
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full">
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Go Back
+            </Button>
+            
+            <Button className="flex-1">
+              <Home className="mr-2 h-4 w-4" />
+              <Link to={isAuthenticated ? '/dashboard' : '/'}>
+                {isAuthenticated ? 'Dashboard' : 'Home'}
               </Link>
             </Button>
+          </div>
+          
+          {isAuthenticated && user && (
+            <div className="mt-8 text-sm text-muted-foreground">
+              <p>Looking for something specific?</p>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                {user.role === 'patient' && (
+                  <>
+                    <Button variant="link" size="sm" asChild>
+                      <Link to="/appointments">My Appointments</Link>
+                    </Button>
+                    <Button variant="link" size="sm" asChild>
+                      <Link to="/doctors">Find Doctors</Link>
+                    </Button>
+                    <Button variant="link" size="sm" asChild>
+                      <Link to="/records">My Records</Link>
+                    </Button>
+                    <Button variant="link" size="sm" asChild>
+                      <Link to="/messages">My Messages</Link>
+                    </Button>
+                  </>
+                )}
+                
+                {user.role === 'doctor' && (
+                  <>
+                    <Button variant="link" size="sm" asChild>
+                      <Link to="/appointments">My Schedule</Link>
+                    </Button>
+                    <Button variant="link" size="sm" asChild>
+                      <Link to="/patients">My Patients</Link>
+                    </Button>
+                    <Button variant="link" size="sm" asChild>
+                      <Link to="/messages">Messages</Link>
+                    </Button>
+                    <Button variant="link" size="sm" asChild>
+                      <Link to="/records">Medical Records</Link>
+                    </Button>
+                  </>
+                )}
+                
+                {user.role === 'admin' && (
+                  <>
+                    <Button variant="link" size="sm" asChild>
+                      <Link to="/patients">Patients</Link>
+                    </Button>
+                    <Button variant="link" size="sm" asChild>
+                      <Link to="/doctors">Doctors</Link>
+                    </Button>
+                    <Button variant="link" size="sm" asChild>
+                      <Link to="/appointments">Appointments</Link>
+                    </Button>
+                    <Button variant="link" size="sm" asChild>
+                      <Link to="/analytics">Analytics</Link>
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
           )}
+          
+          <p className="text-xs text-muted-foreground mt-8">
+            You will be automatically redirected to {isAuthenticated ? 'dashboard' : 'home'} in a few seconds.
+          </p>
         </div>
       </div>
     </div>

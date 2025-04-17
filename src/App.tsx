@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth, UserRole } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
@@ -23,9 +23,15 @@ import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
-// Protected route component
-const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+// Protected route component with role-based access control
+const ProtectedRoute = ({ 
+  children, 
+  allowedRoles 
+}: { 
+  children: JSX.Element, 
+  allowedRoles?: UserRole[] 
+}) => {
+  const { isAuthenticated, isLoading, user } = useAuth();
   
   // Show loading state while checking authentication
   if (isLoading) {
@@ -35,6 +41,11 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+  
+  // Check if user has required role
+  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/dashboard" replace />;
   }
   
   return children;
@@ -58,6 +69,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Routes for all authenticated users */}
       <Route 
         path="/appointments" 
         element={
@@ -66,30 +79,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
-      <Route 
-        path="/patients" 
-        element={
-          <ProtectedRoute>
-            <Patients />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/doctors" 
-        element={
-          <ProtectedRoute>
-            <Doctors />
-          </ProtectedRoute>
-        } 
-      />
-      <Route 
-        path="/analytics" 
-        element={
-          <ProtectedRoute>
-            <Analytics />
-          </ProtectedRoute>
-        } 
-      />
+      
       <Route 
         path="/records" 
         element={
@@ -98,6 +88,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
       <Route 
         path="/messages" 
         element={
@@ -106,6 +97,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
       <Route 
         path="/claims" 
         element={
@@ -114,19 +106,52 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
-      <Route 
-        path="/billing" 
-        element={
-          <ProtectedRoute>
-            <Billing />
-          </ProtectedRoute>
-        } 
-      />
+      
       <Route 
         path="/settings" 
         element={
           <ProtectedRoute>
             <Settings />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Admin and Doctor only routes */}
+      <Route 
+        path="/patients" 
+        element={
+          <ProtectedRoute allowedRoles={['admin', 'doctor']}>
+            <Patients />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Admin and Patient only routes */}
+      <Route 
+        path="/doctors" 
+        element={
+          <ProtectedRoute allowedRoles={['admin', 'patient']}>
+            <Doctors />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Admin and Doctor only routes */}
+      <Route 
+        path="/analytics" 
+        element={
+          <ProtectedRoute allowedRoles={['admin', 'doctor']}>
+            <Analytics />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Admin and Patient only route */}
+      <Route 
+        path="/billing" 
+        element={
+          <ProtectedRoute allowedRoles={['admin', 'patient']}>
+            <Billing />
           </ProtectedRoute>
         } 
       />
