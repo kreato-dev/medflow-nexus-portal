@@ -40,7 +40,7 @@ export const exportToPDF = (elementId: string, filename: string) => {
   });
 };
 
-export const exportToExcel = (data: any, filename: string) => {
+export const exportToExcel = (data: any[], filename: string) => {
   // Convert data to worksheet
   const worksheet = XLSX.utils.json_to_sheet(data);
   

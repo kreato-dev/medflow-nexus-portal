@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Clock, Download, Mail, Phone, Printer, User } from 'lucide-react';
+import { Calendar, Clock, Download, FileText, Mail, Phone, Printer } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { exportToPDF } from '@/utils/export-utils';
@@ -265,7 +265,7 @@ export default function PatientProfile() {
                           );
                         } else {
                           // Add to the last date group
-                          const lastGroup = acc[acc.length - a1];
+                          const lastGroup = acc[acc.length - 1];
                           const newEvent = (
                             <div key={`event-${index}`} className="relative">
                               <div className="absolute -left-[21px] top-1 h-4 w-4 rounded-full bg-primary"></div>
