@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Calendar, Download, Printer, User } from 'lucide-react';
+import { AlertCircle, Calendar, Download, Printer, User, FileText } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useState, useEffect } from 'react';
+import { exportToPDF, exportToExcel, claimToExcelData } from '@/utils/export-utils';
 
 // Mock claim data
 const mockClaim = {
@@ -77,14 +78,18 @@ export default function ClaimDetails() {
     window.print();
   };
   
-  const handleDownload = () => {
-    // In a real app, this would generate a PDF or other file format
-    alert('Downloading claim details as PDF...');
+  const handleDownloadPDF = () => {
+    exportToPDF('claim-details-content', `claim-${claim.id}`);
+  };
+  
+  const handleDownloadExcel = () => {
+    const data = claimToExcelData(claim);
+    exportToExcel(data, `claim-${claim.id}`);
   };
 
   return (
     <MainLayout>
-      <div className="space-y-6 pb-8 print:p-8">
+      <div className="space-y-6 pb-8 print:p-8" id="claim-details-content">
         <div className="flex flex-col md:flex-row justify-between items-start gap-4 print:hidden">
           <div>
             <div className="flex items-center gap-2">
@@ -110,9 +115,13 @@ export default function ClaimDetails() {
               <Printer className="h-4 w-4 mr-2" />
               Print
             </Button>
-            <Button variant="outline" size="sm" onClick={handleDownload}>
+            <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
+              <FileText className="h-4 w-4 mr-2" />
+              PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDownloadExcel}>
               <Download className="h-4 w-4 mr-2" />
-              Download
+              Excel
             </Button>
             <Button variant="default" size="sm">
               Actions

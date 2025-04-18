@@ -9,6 +9,8 @@ import { Separator } from '@/components/ui/separator';
 import { Calendar, Clock, Download, Mail, Phone, Printer, User } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { exportToPDF } from '@/utils/export-utils';
+import { PatientRecordView } from '@/components/patient/PatientRecordView';
 
 // Mock patient data
 const mockPatient = {
@@ -75,6 +77,7 @@ const mockPatient = {
 export default function PatientProfile() {
   const { patientId } = useParams();
   const [patient, setPatient] = useState(mockPatient);
+  const [isRecordViewOpen, setIsRecordViewOpen] = useState(false);
   
   // In a real application, fetch the patient data based on the ID
   useEffect(() => {
@@ -88,13 +91,16 @@ export default function PatientProfile() {
   };
   
   const handleDownload = () => {
-    // In a real app, this would generate a PDF or other file format
-    alert('Downloading patient records as PDF...');
+    exportToPDF('patient-profile-content', `patient-${patient.id}-records`);
+  };
+  
+  const handleViewFullRecord = () => {
+    setIsRecordViewOpen(true);
   };
 
   return (
     <MainLayout>
-      <div className="space-y-6 pb-8 print:p-8">
+      <div className="space-y-6 pb-8 print:p-8" id="patient-profile-content">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Patient Info Card */}
           <div className="w-full lg:w-1/3 space-y-6">
@@ -131,9 +137,23 @@ export default function PatientProfile() {
                     </div>
                   </div>
                   
-                  <Button className="w-full" variant="outline" onClick={handlePrint}>
-                    <Printer className="h-4 w-4 mr-2" />
-                    Print Records
+                  <div className="flex gap-2 w-full">
+                    <Button className="flex-1" variant="outline" onClick={handlePrint}>
+                      <Printer className="h-4 w-4 mr-2" />
+                      Print
+                    </Button>
+                    <Button className="flex-1" variant="outline" onClick={handleDownload}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Download
+                    </Button>
+                  </div>
+                  
+                  <Button 
+                    className="w-full" 
+                    variant="default" 
+                    onClick={handleViewFullRecord}
+                  >
+                    View Complete Record
                   </Button>
                 </div>
               </CardContent>
@@ -245,7 +265,7 @@ export default function PatientProfile() {
                           );
                         } else {
                           // Add to the last date group
-                          const lastGroup = acc[acc.length - 1];
+                          const lastGroup = acc[acc.length - a1];
                           const newEvent = (
                             <div key={`event-${index}`} className="relative">
                               <div className="absolute -left-[21px] top-1 h-4 w-4 rounded-full bg-primary"></div>
@@ -286,7 +306,42 @@ export default function PatientProfile() {
               <TabsContent value="medical-history" className="mt-6">
                 <Card>
                   <CardContent className="p-6">
-                    <p className="text-muted-foreground">Medical history details would be shown here.</p>
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="font-medium text-lg mb-3">Chronic Conditions</h3>
+                        <div className="space-y-3">
+                          <div className="flex justify-between">
+                            <span className="font-medium">Hypertension</span>
+                            <span className="text-sm text-muted-foreground">Diagnosed: Jan 2020</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">Managed with medication. Regular monitoring required.</p>
+                          <Separator />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h3 className="font-medium text-lg mb-3">Surgical History</h3>
+                        <div className="space-y-3">
+                          <div className="flex justify-between">
+                            <span className="font-medium">Appendectomy</span>
+                            <span className="text-sm text-muted-foreground">2015</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">Procedure completed without complications.</p>
+                          <Separator />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h3 className="font-medium text-lg mb-3">Past Hospitalizations</h3>
+                        <div className="space-y-3">
+                          <div className="flex justify-between">
+                            <span className="font-medium">Pneumonia</span>
+                            <span className="text-sm text-muted-foreground">March 2018</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">Hospitalized for 5 days. Full recovery.</p>
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -294,7 +349,48 @@ export default function PatientProfile() {
               <TabsContent value="vital-signs" className="mt-6">
                 <Card>
                   <CardContent className="p-6">
-                    <p className="text-muted-foreground">Vital signs and measurements would be shown here.</p>
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="font-medium text-lg mb-3">Recent Measurements</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="p-4 border rounded-md">
+                            <div className="text-sm text-muted-foreground">Blood Pressure</div>
+                            <div className="text-xl font-bold">128/82 <span className="text-sm font-normal text-muted-foreground">mmHg</span></div>
+                            <div className="text-xs text-muted-foreground mt-1">Last measured: Oct 15, 2023</div>
+                          </div>
+                          
+                          <div className="p-4 border rounded-md">
+                            <div className="text-sm text-muted-foreground">Heart Rate</div>
+                            <div className="text-xl font-bold">72 <span className="text-sm font-normal text-muted-foreground">bpm</span></div>
+                            <div className="text-xs text-muted-foreground mt-1">Last measured: Oct 15, 2023</div>
+                          </div>
+                          
+                          <div className="p-4 border rounded-md">
+                            <div className="text-sm text-muted-foreground">Temperature</div>
+                            <div className="text-xl font-bold">37.1 <span className="text-sm font-normal text-muted-foreground">°C</span></div>
+                            <div className="text-xs text-muted-foreground mt-1">Last measured: Oct 15, 2023</div>
+                          </div>
+                          
+                          <div className="p-4 border rounded-md">
+                            <div className="text-sm text-muted-foreground">Respiratory Rate</div>
+                            <div className="text-xl font-bold">16 <span className="text-sm font-normal text-muted-foreground">breaths/min</span></div>
+                            <div className="text-xs text-muted-foreground mt-1">Last measured: Oct 15, 2023</div>
+                          </div>
+                          
+                          <div className="p-4 border rounded-md">
+                            <div className="text-sm text-muted-foreground">Weight</div>
+                            <div className="text-xl font-bold">64 <span className="text-sm font-normal text-muted-foreground">kg</span></div>
+                            <div className="text-xs text-muted-foreground mt-1">Last measured: Oct 15, 2023</div>
+                          </div>
+                          
+                          <div className="p-4 border rounded-md">
+                            <div className="text-sm text-muted-foreground">Blood Glucose</div>
+                            <div className="text-xl font-bold">98 <span className="text-sm font-normal text-muted-foreground">mg/dL</span></div>
+                            <div className="text-xs text-muted-foreground mt-1">Last measured: Oct 15, 2023</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -302,7 +398,57 @@ export default function PatientProfile() {
               <TabsContent value="documents" className="mt-6">
                 <Card>
                   <CardContent className="p-6">
-                    <p className="text-muted-foreground">Patient documents and files would be shown here.</p>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-medium text-lg">Medical Documents</h3>
+                        <Button variant="outline" size="sm">
+                          <Download className="h-4 w-4 mr-2" />
+                          Download All
+                        </Button>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        {[
+                          { 
+                            title: 'Lab Results - Blood Work', 
+                            date: 'July 12, 2023', 
+                            type: 'PDF', 
+                            icon: <FileText className="h-5 w-5 text-primary" /> 
+                          },
+                          { 
+                            title: 'Allergy Test Results', 
+                            date: 'September 3, 2023', 
+                            type: 'PDF', 
+                            icon: <FileText className="h-5 w-5 text-primary" /> 
+                          },
+                          { 
+                            title: 'Prescription - Antihistamines', 
+                            date: 'September 3, 2023', 
+                            type: 'PDF', 
+                            icon: <FileText className="h-5 w-5 text-primary" /> 
+                          },
+                          { 
+                            title: 'Annual Physical Examination', 
+                            date: 'July 12, 2023', 
+                            type: 'PDF', 
+                            icon: <FileText className="h-5 w-5 text-primary" /> 
+                          }
+                        ].map((doc, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 border rounded-md">
+                            <div className="flex items-center gap-3">
+                              {doc.icon}
+                              <div>
+                                <p className="font-medium">{doc.title}</p>
+                                <p className="text-xs text-muted-foreground">{doc.date} • {doc.type}</p>
+                              </div>
+                            </div>
+                            <Button variant="ghost" size="sm">
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -317,6 +463,13 @@ export default function PatientProfile() {
             </Tabs>
           </div>
         </div>
+        
+        {/* Patient Record View Modal */}
+        <PatientRecordView 
+          patient={patient}
+          open={isRecordViewOpen}
+          onClose={() => setIsRecordViewOpen(false)}
+        />
       </div>
     </MainLayout>
   );

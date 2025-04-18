@@ -7,13 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Upload, Download, Eye, Search, Filter } from 'lucide-react';
+import { FileText, Upload, Download, Eye, Search, Filter, FilePlus2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MedicalRecordView } from '@/components/records/MedicalRecordView';
+import { exportToPDF, exportToExcel } from '@/utils/export-utils';
 
 const MedicalRecords = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [selectedRecord, setSelectedRecord] = useState<any>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   
   // Mock records data
   const records = [
@@ -69,6 +73,31 @@ const MedicalRecords = () => {
     return matchesSearch && matchesFilter;
   });
   
+  // Handle viewing record details
+  const handleViewRecord = (record: any) => {
+    setSelectedRecord(record);
+    setIsViewModalOpen(true);
+  };
+  
+  // Handle downloading a record
+  const handleDownloadRecord = (record: any) => {
+    exportToPDF('medical-records-content', `medical-record-${record.id}`);
+  };
+  
+  // Handle exporting records to Excel
+  const handleExportToExcel = () => {
+    const data = filteredRecords.map(record => ({
+      'Record ID': record.id,
+      'Patient Name': record.patientName,
+      'Doctor Name': record.doctorName,
+      'Record Type': record.recordType,
+      'Date': new Date(record.date).toLocaleDateString(),
+      'Status': record.status,
+      'File Name': record.fileName
+    }));
+    exportToExcel(data, 'medical-records');
+  };
+
   // Patient and doctor specific content
   const renderRoleSpecificContent = () => {
     if (user?.role === 'patient') {
@@ -82,10 +111,16 @@ const MedicalRecords = () => {
               <p className="text-sm text-muted-foreground mb-4">
                 Here are all your medical records. You can view or download them at any time.
               </p>
-              <Button className="flex items-center gap-2">
-                <Upload className="h-4 w-4" />
-                Upload New Document
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button className="flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  Upload New Document
+                </Button>
+                <Button variant="outline" onClick={handleExportToExcel} className="flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Export to Excel
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -107,8 +142,12 @@ const MedicalRecords = () => {
                   Upload New Record
                 </Button>
                 <Button variant="outline" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
+                  <FilePlus2 className="h-4 w-4" />
                   Create Record
+                </Button>
+                <Button variant="outline" onClick={handleExportToExcel} className="flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Export to Excel
                 </Button>
               </div>
             </CardContent>
@@ -122,7 +161,7 @@ const MedicalRecords = () => {
   
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6" id="medical-records-content">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold tracking-tight">Medical Records</h1>
         </div>
@@ -228,10 +267,10 @@ const MedicalRecords = () => {
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-right">
                             <div className="flex justify-end space-x-2">
-                              <Button variant="ghost" size="icon">
+                              <Button variant="ghost" size="icon" onClick={() => handleViewRecord(record)}>
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon">
+                              <Button variant="ghost" size="icon" onClick={() => handleDownloadRecord(record)}>
                                 <Download className="h-4 w-4" />
                               </Button>
                             </div>
@@ -240,6 +279,16 @@ const MedicalRecords = () => {
                       ))}
                     </tbody>
                   </table>
+                  
+                  {filteredRecords.length === 0 && (
+                    <div className="py-8 text-center">
+                      <FileText className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium">No records found</h3>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Try adjusting your search or filter criteria
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -288,11 +337,11 @@ const MedicalRecords = () => {
                     </div>
                     
                     <div className="flex justify-end space-x-2">
-                      <Button variant="outline" size="sm" className="flex items-center gap-1">
+                      <Button variant="outline" size="sm" className="flex items-center gap-1" onClick={() => handleViewRecord(record)}>
                         <Eye className="h-3 w-3" />
                         View
                       </Button>
-                      <Button variant="outline" size="sm" className="flex items-center gap-1">
+                      <Button variant="outline" size="sm" className="flex items-center gap-1" onClick={() => handleDownloadRecord(record)}>
                         <Download className="h-3 w-3" />
                         Download
                       </Button>
@@ -301,8 +350,27 @@ const MedicalRecords = () => {
                 </Card>
               ))}
             </div>
+            
+            {filteredRecords.length === 0 && (
+              <div className="py-8 text-center">
+                <FileText className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
+                <h3 className="text-lg font-medium">No records found</h3>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Try adjusting your search or filter criteria
+                </p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
+        
+        {/* View Record Modal */}
+        {selectedRecord && (
+          <MedicalRecordView
+            record={selectedRecord}
+            open={isViewModalOpen}
+            onClose={() => setIsViewModalOpen(false)}
+          />
+        )}
       </div>
     </MainLayout>
   );

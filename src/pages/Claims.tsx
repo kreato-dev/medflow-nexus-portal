@@ -18,7 +18,8 @@ import {
   AlertCircle, 
   ChevronRight, 
   Download, 
-  Printer
+  Printer,
+  FileSpreadsheet
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
@@ -29,6 +30,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
+import { exportToPDF, exportToExcel } from '@/utils/export-utils';
 
 // Mock claims data
 const mockClaims = [
@@ -163,10 +165,34 @@ export default function Claims() {
       </Badge>
     );
   };
+  
+  const handlePrint = () => {
+    window.print();
+  };
+  
+  const handleExportPDF = () => {
+    exportToPDF('claims-content', 'claims-list');
+  };
+  
+  const handleExportExcel = () => {
+    const data = filteredClaims.map(claim => ({
+      'Claim ID': claim.id,
+      'Patient': claim.patient,
+      'Patient ID': claim.patientId,
+      'Provider': claim.provider,
+      'Service': claim.service,
+      'Date': claim.date,
+      'Amount': claim.amount,
+      'Status': claim.status,
+      'Insurance Plan': claim.insurancePlan
+    }));
+    
+    exportToExcel(data, 'claims-list');
+  };
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6" id="claims-content">
         {/* Page Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <h1 className="text-2xl font-bold tracking-tight">Claims Management</h1>
@@ -244,13 +270,17 @@ export default function Claims() {
             </div>
             
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handlePrint}>
                 <Printer className="h-4 w-4 mr-2" />
                 Print
               </Button>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export
+              <Button variant="outline" size="sm" onClick={handleExportPDF}>
+                <FileText className="h-4 w-4 mr-2" />
+                PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExportExcel}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Excel
               </Button>
             </div>
           </div>
