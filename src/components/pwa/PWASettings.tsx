@@ -4,10 +4,9 @@ import { RefreshCw, Trash2, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { checkForUpdates, clearCache, isAppInstalled, updateServiceWorker } from '@/utils/pwa-utils';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 
 export function PWASettings() {
-  const { toast } = useToast();
   const [isClearing, setIsClearing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const installed = isAppInstalled();
@@ -16,11 +15,13 @@ export function PWASettings() {
     setIsClearing(true);
     try {
       const cleared = await clearCache();
-      toast({
-        title: cleared ? 'Cache cleared' : 'Could not clear cache',
-        description: cleared ? 'Application cache has been cleared' : 'Cache API not available',
-        variant: cleared ? 'default' : 'destructive',
-      });
+      if (!cleared) {
+        toast({
+          title: 'Could not clear cache',
+          description: 'Cache API not available',
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
       toast({
         title: 'Error clearing cache',
@@ -47,7 +48,6 @@ export function PWASettings() {
       toast({
         title: 'Error checking for updates',
         description: error instanceof Error ? error.message : 'Unknown error',
-        variant: 'destructive',
       });
       setIsUpdating(false);
     }

@@ -9,6 +9,13 @@ export const isOnline = () => {
     : true;
 };
 
+// Check if the app is installed (running in standalone mode)
+export const isAppInstalled = () => {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         window.navigator.standalone === true;
+};
+
 // Setup network listeners to detect online/offline status
 export const setupNetworkListeners = (
   onlineCallback: () => void,
@@ -45,6 +52,8 @@ export const registerServiceWorker = async () => {
 
 // Check if the app can be installed (is installable)
 export const checkInstallable = async () => {
+  if (typeof window === 'undefined') return false;
+  
   if (!window.deferredPrompt) {
     return false;
   }
@@ -53,6 +62,8 @@ export const checkInstallable = async () => {
 
 // Install the PWA app
 export const installPWA = async () => {
+  if (typeof window === 'undefined') return false;
+  
   const promptEvent = window.deferredPrompt;
   
   if (!promptEvent) {
@@ -74,6 +85,32 @@ export const installPWA = async () => {
     return true;
   } else {
     toast.info("Installation was declined");
+    return false;
+  }
+};
+
+// Update service worker
+export const updateServiceWorker = async () => {
+  if (!('serviceWorker' in navigator)) {
+    return false;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (!registration) {
+      return false;
+    }
+    
+    if (registration.waiting) {
+      // If there's a waiting service worker, notify it to skip waiting
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      toast.success("Application will update shortly");
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error updating service worker:', error);
     return false;
   }
 };
