@@ -1,84 +1,120 @@
 
-/**
- * Utility functions for PWA functionality
- */
-
-// Check if the app is in standalone/installed mode
-export const isAppInstalled = (): boolean => {
-  return window.matchMedia('(display-mode: standalone)').matches || 
-         // @ts-ignore (iOS Safari)
-         window.navigator.standalone === true;
-};
-
-// Check if service worker is supported
-export const isServiceWorkerSupported = (): boolean => {
-  return 'serviceWorker' in navigator;
-};
+// PWA Utility functions
+import { toast } from "sonner";
 
 // Check if the app is online
-export const isOnline = (): boolean => {
-  return navigator.onLine;
+export const isOnline = () => {
+  return typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean'
+    ? navigator.onLine
+    : true;
 };
 
-// Listen for online/offline events
+// Setup network listeners to detect online/offline status
 export const setupNetworkListeners = (
-  onOnline: () => void,
-  onOffline: () => void
-): () => void => {
-  window.addEventListener('online', onOnline);
-  window.addEventListener('offline', onOffline);
-  
-  // Return cleanup function
+  onlineCallback: () => void,
+  offlineCallback: () => void
+) => {
+  if (typeof window === 'undefined') return () => {};
+
+  window.addEventListener('online', onlineCallback);
+  window.addEventListener('offline', offlineCallback);
+
   return () => {
-    window.removeEventListener('online', onOnline);
-    window.removeEventListener('offline', onOffline);
+    window.removeEventListener('online', onlineCallback);
+    window.removeEventListener('offline', offlineCallback);
   };
 };
 
-// Register the service worker
-export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
-  if (!isServiceWorkerSupported()) {
+// Register service worker for PWA
+export const registerServiceWorker = async () => {
+  if (!('serviceWorker' in navigator)) {
     console.warn('Service workers are not supported by this browser');
     return null;
   }
-  
+
   try {
-    const registration = await navigator.serviceWorker.register('/sw.js');
-    console.log('ServiceWorker registration successful with scope:', registration.scope);
+    const registration = await navigator.serviceWorker.register('/sw.js', {
+      scope: '/'
+    });
     return registration;
   } catch (error) {
-    console.error('ServiceWorker registration failed:', error);
+    console.error('Service worker registration failed:', error);
     return null;
+  }
+};
+
+// Check if the app can be installed (is installable)
+export const checkInstallable = async () => {
+  if (!window.deferredPrompt) {
+    return false;
+  }
+  return true;
+};
+
+// Install the PWA app
+export const installPWA = async () => {
+  const promptEvent = window.deferredPrompt;
+  
+  if (!promptEvent) {
+    toast.error("Installation is not available");
+    return false;
+  }
+  
+  // Show the install prompt
+  promptEvent.prompt();
+  
+  // Wait for the user to respond to the prompt
+  const choiceResult = await promptEvent.userChoice;
+  
+  // Clear the saved prompt since it can't be used again
+  window.deferredPrompt = null;
+  
+  if (choiceResult.outcome === 'accepted') {
+    toast.success("Installation successful!");
+    return true;
+  } else {
+    toast.info("Installation was declined");
+    return false;
   }
 };
 
 // Check for service worker updates
-export const checkForUpdates = async (): Promise<void> => {
-  if (!isServiceWorkerSupported()) {
-    return;
+export const checkForUpdates = async () => {
+  if (!('serviceWorker' in navigator)) {
+    return false;
   }
-  
-  const registration = await navigator.serviceWorker.getRegistration();
-  if (registration) {
-    registration.update();
-  }
-};
 
-// Update service worker immediately
-export const updateServiceWorker = (): void => {
-  if (!isServiceWorkerSupported() || !navigator.serviceWorker.controller) {
-    return;
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (!registration) {
+      return false;
+    }
+    
+    await registration.update();
+    return true;
+  } catch (error) {
+    console.error('Error checking for updates:', error);
+    return false;
   }
-  
-  navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
 };
 
 // Clear the PWA cache
-export const clearCache = async (): Promise<boolean> => {
-  if ('caches' in window) {
-    const cacheKeys = await caches.keys();
-    await Promise.all(cacheKeys.map(key => caches.delete(key)));
-    return true;
+export const clearCache = async () => {
+  if (!('caches' in window)) {
+    toast.error("Cache API not supported");
+    return false;
   }
-  return false;
+
+  try {
+    const cacheNames = await caches.keys();
+    await Promise.all(
+      cacheNames.map(cacheName => caches.delete(cacheName))
+    );
+    toast.success("Cache cleared successfully");
+    return true;
+  } catch (error) {
+    console.error('Error clearing cache:', error);
+    toast.error("Failed to clear cache");
+    return false;
+  }
 };

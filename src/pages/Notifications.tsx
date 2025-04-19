@@ -1,215 +1,228 @@
 
 import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Bell, Check, CheckCheck, Clock, FileText, Heart, ShieldAlert, X } from 'lucide-react';
+import { Search, Clock, Mail, AlertCircle, Info, Bell, CheckCircle, Trash2, MailOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 // Mock notification data
 const mockNotifications = [
   {
-    id: 1,
-    title: 'New lab results available',
-    description: "Faisal Ahmed's blood test results are ready for review.",
-    time: '29 minutes ago',
-    type: 'lab-results',
-    isNew: true
+    id: 'notification-001',
+    title: 'Appointment Reminder',
+    message: 'You have an upcoming appointment with Dr. Khan tomorrow at 2:30 PM. Please arrive 15 minutes early to complete paperwork.',
+    type: 'reminder',
+    date: '2023-10-20T14:30:00',
+    isRead: true,
   },
   {
-    id: 2,
-    title: 'Appointment rescheduled',
-    description: 'Zainab Khan rescheduled her appointment to tomorrow at 2:00 PM.',
-    time: 'about 1 hour ago',
-    type: 'appointments',
-    isNew: true
+    id: 'notification-002',
+    title: 'Lab Results Available',
+    message: 'Your recent blood work results are now available in your medical records. Please review them at your earliest convenience.',
+    type: 'info',
+    date: '2023-10-19T09:15:00',
+    isRead: false,
   },
   {
-    id: 3,
-    title: 'Payment received',
-    description: 'Received payment of ₨ 4,500 from Ayesha Malik for consultation.',
-    time: 'about 3 hours ago',
-    type: 'payments',
-    isNew: false
+    id: 'notification-003',
+    title: 'Prescription Refill',
+    message: 'Your prescription for Lisinopril has been refilled and is ready for pickup at your preferred pharmacy.',
+    type: 'success',
+    date: '2023-10-18T16:45:00',
+    isRead: true,
   },
   {
-    id: 4,
-    title: 'New authorization request',
-    description: "Insurance approval needed for Hamid Raza's MRI scan.",
-    time: 'about 5 hours ago',
-    type: 'authorizations',
-    isNew: false
+    id: 'notification-004',
+    title: 'Payment Due',
+    message: 'You have an outstanding balance of $125.00 for your recent visit. Please make a payment at your earliest convenience to avoid late fees.',
+    type: 'alert',
+    date: '2023-10-17T10:00:00',
+    isRead: false,
   },
-  {
-    id: 5,
-    title: 'Prescription refill request',
-    description: 'Saima Bibi requested a refill for her hypertension medication.',
-    time: '1 day ago',
-    type: 'prescriptions',
-    isNew: false
-  }
 ];
 
-// Notification type icons mapping
-const typeIcons = {
-  'appointments': <Clock className="h-5 w-5" />,
-  'lab-results': <FileText className="h-5 w-5" />,
-  'payments': <FileText className="h-5 w-5" />,
-  'authorizations': <ShieldAlert className="h-5 w-5" />,
-  'prescriptions': <Heart className="h-5 w-5" />
-};
-
-// Notification type colors mapping
-const typeColors = {
-  'appointments': 'bg-primary/10 text-primary',
-  'lab-results': 'bg-success/10 text-success',
-  'payments': 'bg-secondary/10 text-secondary',
-  'authorizations': 'bg-warning/10 text-warning',
-  'prescriptions': 'bg-accent/10 text-accent'
-};
-
 export default function Notifications() {
+  const [searchQuery, setSearchQuery] = useState('');
   const [notifications, setNotifications] = useState(mockNotifications);
-  const [filter, setFilter] = useState('all');
+  const navigate = useNavigate();
   
-  const unreadCount = notifications.filter(n => n.isNew).length;
+  // Filter notifications based on search
+  const filteredNotifications = notifications.filter(notification =>
+    notification.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    notification.message.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   
-  const filteredNotifications = notifications.filter(notification => {
-    if (filter === 'all') return true;
-    if (filter === 'unread') return notification.isNew;
-    return notification.type === filter;
-  });
-  
-  const handleMarkAllRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, isNew: false })));
+  const handleMarkAllAsRead = () => {
+    setNotifications(prev => prev.map(notification => ({ ...notification, isRead: true })));
+    toast.success('All notifications marked as read');
   };
   
   const handleClearAll = () => {
     setNotifications([]);
+    toast.success('All notifications cleared');
   };
   
-  const handleDismiss = (id: number) => {
-    setNotifications(notifications.filter(n => n.id !== id));
-  };
-  
-  const handleMarkRead = (id: number) => {
-    setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, isNew: false } : n
+  const handleMarkAsRead = (id: string) => {
+    setNotifications(prev => prev.map(notification => 
+      notification.id === id ? { ...notification, isRead: true } : notification
     ));
+    toast.success('Notification marked as read');
+  };
+  
+  const handleDelete = (id: string) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
+    toast.success('Notification deleted');
+  };
+  
+  const handleViewNotification = (id: string) => {
+    navigate(`/notifications/${id}`);
+  };
+  
+  // Group notifications by date
+  const groupedNotifications: { [key: string]: typeof mockNotifications } = {};
+  filteredNotifications.forEach(notification => {
+    const date = new Date(notification.date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    if (!groupedNotifications[date]) {
+      groupedNotifications[date] = [];
+    }
+    groupedNotifications[date].push(notification);
+  });
+  
+  // Get icon based on notification type
+  const getIconByType = (type: string) => {
+    switch (type) {
+      case 'reminder':
+        return <Clock className="h-5 w-5 text-primary" />;
+      case 'alert':
+        return <AlertCircle className="h-5 w-5 text-destructive" />;
+      case 'success':
+        return <CheckCircle className="h-5 w-5 text-success" />;
+      default:
+        return <Info className="h-5 w-5 text-info" />;
+    }
   };
   
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight">Notifications</h1>
-            {unreadCount > 0 && (
-              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                {unreadCount} unread
-              </Badge>
-            )}
-          </div>
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h1 className="text-2xl font-bold tracking-tight">Notifications</h1>
           
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleMarkAllRead}>
-              <CheckCheck className="h-4 w-4 mr-2" />
-              Mark all as read
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleMarkAllAsRead}>
+              <MailOpen className="h-4 w-4 mr-2" />
+              Mark All as Read
             </Button>
-            <Button variant="outline" size="sm" onClick={handleClearAll}>
-              <X className="h-4 w-4 mr-2" />
-              Clear all
+            <Button variant="outline" className="text-destructive" onClick={handleClearAll}>
+              <Trash2 className="h-4 w-4 mr-2" />
+              Clear All
             </Button>
           </div>
         </div>
         
-        <Tabs defaultValue="all" onValueChange={setFilter}>
-          <Card>
-            <CardHeader className="pb-0">
-              <TabsList className="w-full justify-start">
-                <TabsTrigger value="all" className="flex-none">All</TabsTrigger>
-                <TabsTrigger value="unread" className="flex-none">Unread</TabsTrigger>
-                <TabsTrigger value="appointments" className="flex-none">Appointments</TabsTrigger>
-                <TabsTrigger value="lab-results" className="flex-none">Lab Results</TabsTrigger>
-                <TabsTrigger value="payments" className="flex-none">Payments</TabsTrigger>
-                <TabsTrigger value="authorizations" className="flex-none">Authorizations</TabsTrigger>
-              </TabsList>
-            </CardHeader>
-            
-            <CardContent className="p-0">
-              {filteredNotifications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-8 text-center">
-                  <Bell className="h-12 w-12 text-muted-foreground/40 mb-4" />
-                  <h3 className="text-lg font-medium">No notifications</h3>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    You don't have any {filter !== 'all' ? filter : ''} notifications at the moment.
-                  </p>
-                </div>
-              ) : (
-                <ul className="divide-y">
-                  {filteredNotifications.map((notification) => (
-                    <li key={notification.id} className={cn(
-                      "p-4 relative hover:bg-muted/30 transition-colors",
-                      notification.isNew && "bg-muted/20"
-                    )}>
-                      <div className="flex items-start gap-4">
-                        <div className={cn(
-                          "flex-shrink-0 p-2 rounded-full",
-                          typeColors[notification.type as keyof typeof typeColors]
-                        )}>
-                          {typeIcons[notification.type as keyof typeof typeIcons]}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-medium truncate">{notification.title}</h3>
-                            {notification.isNew && (
-                              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                                New
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {notification.description}
-                          </p>
-                          <div className="text-xs text-muted-foreground mt-2">
-                            {notification.time}
-                          </div>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          {notification.isNew && (
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => handleMarkRead(notification.id)}
-                              title="Mark as read"
-                            >
-                              <Check className="h-4 w-4" />
-                            </Button>
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search notifications..."
+            className="pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        
+        {/* Notifications List */}
+        <div className="space-y-8">
+          {filteredNotifications.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Bell className="h-16 w-16 text-muted-foreground mb-4" />
+              <h2 className="text-lg font-semibold mb-2">No Notifications</h2>
+              <p className="text-muted-foreground">You don't have any notifications at the moment.</p>
+            </div>
+          ) : (
+            Object.entries(groupedNotifications).map(([date, dateNotifications]) => (
+              <div key={date} className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">{date}</h3>
+                <Card>
+                  <CardContent className="p-0">
+                    <div className="divide-y">
+                      {dateNotifications.map((notification, index) => (
+                        <div 
+                          key={notification.id}
+                          className={cn(
+                            "p-4 hover:bg-accent/50 transition-colors cursor-pointer",
+                            !notification.isRead && "bg-accent/20"
                           )}
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-muted-foreground"
-                            onClick={() => handleDismiss(notification.id)}
-                            title="Dismiss"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className="mt-1">{getIconByType(notification.type)}</div>
+                            <div className="flex-1 space-y-1" onClick={() => handleViewNotification(notification.id)}>
+                              <div className="flex items-center justify-between">
+                                <h4 className={cn(
+                                  "font-medium",
+                                  !notification.isRead && "font-semibold"
+                                )}>
+                                  {notification.title}
+                                  {!notification.isRead && (
+                                    <Badge className="ml-2 h-2 w-2 p-0 rounded-full bg-primary" />
+                                  )}
+                                </h4>
+                                <div className="flex items-center text-xs text-muted-foreground">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {new Date(notification.date).toLocaleTimeString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </div>
+                              </div>
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {notification.message}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-3 ml-9 flex items-center gap-2">
+                            {!notification.isRead && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 text-xs"
+                                onClick={() => handleMarkAsRead(notification.id)}
+                              >
+                                <Mail className="h-3 w-3 mr-1" />
+                                Mark as read
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 text-xs text-destructive"
+                              onClick={() => handleDelete(notification.id)}
+                            >
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              Delete
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
-        </Tabs>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </MainLayout>
   );

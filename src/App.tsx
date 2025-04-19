@@ -22,6 +22,7 @@ import ClaimDetails from "./pages/ClaimDetails";
 import PatientProfile from "./pages/PatientProfile";
 import DoctorProfile from "./pages/DoctorProfile";
 import Notifications from "./pages/Notifications";
+import NotificationDetail from "./pages/NotificationDetail";
 import Billing from "./pages/Billing";
 import Settings from "./pages/Settings";
 import Corporates from "./pages/corporate/Corporates";
@@ -155,6 +156,15 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Notifications />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/notifications/:notificationId" 
+        element={
+          <ProtectedRoute>
+            <NotificationDetail />
           </ProtectedRoute>
         } 
       />

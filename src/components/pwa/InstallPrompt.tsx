@@ -1,83 +1,92 @@
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { checkInstallable, installPWA } from '@/utils/pwa-utils';
 import { Download } from 'lucide-react';
-import { isAppInstalled } from '@/utils/pwa-utils';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
-}
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
 export function InstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showPrompt, setShowPrompt] = useState(false);
+  const [canInstall, setCanInstall] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Don't show the prompt if the app is already installed
-    if (isAppInstalled()) {
-      return;
-    }
-
-    const handleBeforeInstallPrompt = (e: Event) => {
-      // Prevent the mini-infobar from appearing on mobile
-      e.preventDefault();
-      // Store the event so it can be triggered later
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      // Show the install prompt
-      setShowPrompt(true);
+    const checkAndSetInstallable = async () => {
+      const installable = await checkInstallable();
+      setCanInstall(installable);
+      // Only show the prompt if the app is installable and not already installed
+      if (installable && !window.matchMedia('(display-mode: standalone)').matches) {
+        // Wait a bit before showing the prompt to not overwhelm the user
+        setTimeout(() => setIsVisible(true), 3000);
+      }
     };
 
+    checkAndSetInstallable();
+
+    // Listen for the beforeinstallprompt event
+    const handleBeforeInstallPrompt = (e: Event) => {
+      // Prevent the default browser install prompt
+      e.preventDefault();
+      // Store the event for later use
+      window.deferredPrompt = e;
+      // Check again if the app is installable
+      checkAndSetInstallable();
+    };
+
+    // Add the event listener
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
+    // Listen for the appinstalled event
+    const handleAppInstalled = () => {
+      // Hide the install button
+      setCanInstall(false);
+      setIsVisible(false);
+      // Clear the saved prompt
+      window.deferredPrompt = null;
+    };
+
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    // Clean up event listeners
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      return;
-    }
-
-    // Show the install prompt
-    deferredPrompt.prompt();
-
-    // Wait for the user to respond to the prompt
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    // We've used the prompt, and can't use it again, so clear it
-    setDeferredPrompt(null);
-    
-    // Hide the install button regardless of outcome
-    setShowPrompt(false);
-    
-    console.log(`User ${outcome} the installation`);
+  const handleInstall = async () => {
+    await installPWA();
+    setIsVisible(false);
   };
 
-  if (!showPrompt) {
+  const handleDismiss = () => {
+    setIsVisible(false);
+  };
+
+  if (!isVisible || !canInstall) {
     return null;
   }
 
   return (
-    <Card className="fixed bottom-4 right-4 w-80 z-50 shadow-lg">
+    <Card className="fixed bottom-4 right-4 md:w-80 z-50 shadow-lg border-primary/20">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg">Install MedFlow Nexus</CardTitle>
-        <CardDescription>Install our app for a better experience</CardDescription>
+        <CardTitle className="text-lg flex items-center">
+          <Download className="mr-2 h-5 w-5" />
+          Install MedFlow App
+        </CardTitle>
+        <CardDescription>
+          Add to your home screen for easier access
+        </CardDescription>
       </CardHeader>
-      <CardContent className="text-sm">
-        Install this application on your device for quick and easy access when you're on the go.
+      <CardContent>
+        <div className="flex space-x-2">
+          <Button onClick={handleInstall} className="flex-1">
+            Install
+          </Button>
+          <Button variant="outline" onClick={handleDismiss}>
+            Later
+          </Button>
+        </div>
       </CardContent>
-      <CardFooter className="flex justify-between pt-2">
-        <Button variant="ghost" onClick={() => setShowPrompt(false)}>
-          Not now
-        </Button>
-        <Button onClick={handleInstallClick} className="flex items-center">
-          <Download className="mr-2 h-4 w-4" />
-          Install
-        </Button>
-      </CardFooter>
     </Card>
   );
 }
