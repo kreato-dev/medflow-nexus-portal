@@ -1,8 +1,9 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
+import { corporateAdminUser } from '@/data/mockCorporate';
 
 // User types
-export type UserRole = 'admin' | 'doctor' | 'patient';
+export type UserRole = 'admin' | 'doctor' | 'patient' | 'corporate';
 
 export interface User {
   id: string;
@@ -59,6 +60,7 @@ const MOCK_USERS = [
     role: 'patient' as UserRole,
     avatar: 'https://ui-avatars.com/api/?name=John+Doe&background=0D8ABC&color=fff',
   },
+  corporateAdminUser,
 ];
 
 // Provider component

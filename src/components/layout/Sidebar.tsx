@@ -18,7 +18,8 @@ import {
   FileText,
   Stethoscope,
   User,
-  Activity
+  Activity,
+  Building
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
@@ -200,10 +201,85 @@ const adminLinks: SidebarLink[] = [
     roles: ['admin'],
   },
   {
+    title: 'Corporates',
+    path: '/corporates',
+    icon: <Building className="h-5 w-5" />,
+    roles: ['admin'],
+  },
+  {
+    title: 'Companies',
+    path: '/companies',
+    icon: <Building className="h-5 w-5" />,
+    roles: ['admin'],
+  },
+  {
+    title: 'Employees',
+    path: '/employees',
+    icon: <Users className="h-5 w-5" />,
+    roles: ['admin'],
+  },
+  {
     title: 'Settings',
     path: '/settings',
     icon: <Settings className="h-5 w-5" />,
     roles: ['admin'],
+  },
+];
+
+const corporateLinks: SidebarLink[] = [
+  {
+    title: 'Dashboard',
+    path: '/dashboard',
+    icon: <Home className="h-5 w-5" />,
+    roles: ['corporate'],
+  },
+  {
+    title: 'Companies',
+    path: '/companies',
+    icon: <Building className="h-5 w-5" />,
+    roles: ['corporate'],
+  },
+  {
+    title: 'Employees',
+    path: '/employees',
+    icon: <Users className="h-5 w-5" />,
+    roles: ['corporate'],
+  },
+  {
+    title: 'Insurance Plans',
+    path: '/insurance',
+    icon: <ClipboardList className="h-5 w-5" />,
+    roles: ['corporate'],
+  },
+  {
+    title: 'Claims',
+    path: '/claims',
+    icon: <FileText className="h-5 w-5" />,
+    roles: ['corporate'],
+  },
+  {
+    title: 'Billing',
+    path: '/billing',
+    icon: <CreditCard className="h-5 w-5" />,
+    roles: ['corporate'],
+  },
+  {
+    title: 'Analytics',
+    path: '/analytics',
+    icon: <BarChartBig className="h-5 w-5" />,
+    roles: ['corporate'],
+  },
+  {
+    title: 'Messages',
+    path: '/messages',
+    icon: <MessageSquare className="h-5 w-5" />,
+    roles: ['corporate'],
+  },
+  {
+    title: 'Settings',
+    path: '/settings',
+    icon: <Settings className="h-5 w-5" />,
+    roles: ['corporate'],
   },
 ];
 
@@ -224,6 +300,8 @@ export function Sidebar() {
         return doctorLinks;
       case 'patient':
         return patientLinks;
+      case 'corporate':
+        return corporateLinks;
       default:
         return [];
     }

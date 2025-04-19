@@ -57,6 +57,11 @@ const Login = () => {
     setPassword('password123');
   };
 
+  const loginAsCorporate = () => {
+    setEmail('corporate@example.com');
+    setPassword('password123');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="absolute top-4 right-4">
@@ -153,7 +158,7 @@ const Login = () => {
               <p className="text-xs text-center text-muted-foreground mb-2">
                 Demo accounts for testing
               </p>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -177,6 +182,14 @@ const Login = () => {
                   className="text-xs"
                 >
                   Patient
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={loginAsCorporate}
+                  className="text-xs"
+                >
+                  Corporate
                 </Button>
               </div>
             </div>

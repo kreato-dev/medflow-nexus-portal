@@ -24,6 +24,15 @@ import DoctorProfile from "./pages/DoctorProfile";
 import Notifications from "./pages/Notifications";
 import Billing from "./pages/Billing";
 import Settings from "./pages/Settings";
+import Corporates from "./pages/corporate/Corporates";
+import CorporateDetail from "./pages/corporate/CorporateDetail";
+import CorporateForm from "./pages/corporate/CorporateForm";
+import Companies from "./pages/corporate/Companies";
+import CompanyDetail from "./pages/corporate/CompanyDetail";
+import CompanyForm from "./pages/corporate/CompanyForm";
+import Employees from "./pages/corporate/Employees";
+import EmployeeDetail from "./pages/corporate/EmployeeDetail";
+import EmployeeForm from "./pages/corporate/EmployeeForm";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 
 const queryClient = new QueryClient();
@@ -177,22 +186,131 @@ const AppRoutes = () => {
         } 
       />
       
-      {/* Admin and Doctor only routes */}
+      {/* Admin, Doctor and Corporate only routes */}
       <Route 
         path="/analytics" 
         element={
-          <ProtectedRoute allowedRoles={['admin', 'doctor']}>
+          <ProtectedRoute allowedRoles={['admin', 'doctor', 'corporate']}>
             <Analytics />
           </ProtectedRoute>
         } 
       />
       
-      {/* Admin and Patient only route */}
+      {/* Admin, Patient and Corporate only route */}
       <Route 
         path="/billing" 
         element={
-          <ProtectedRoute allowedRoles={['admin', 'patient']}>
+          <ProtectedRoute allowedRoles={['admin', 'patient', 'corporate']}>
             <Billing />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Corporate Routes */}
+      <Route 
+        path="/corporates" 
+        element={
+          <ProtectedRoute allowedRoles={['admin', 'corporate']}>
+            <Corporates />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/corporates/:id" 
+        element={
+          <ProtectedRoute allowedRoles={['admin', 'corporate']}>
+            <CorporateDetail />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/corporates/new" 
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <CorporateForm />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/corporates/edit/:id" 
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <CorporateForm />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/companies" 
+        element={
+          <ProtectedRoute allowedRoles={['admin', 'corporate']}>
+            <Companies />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/companies/:id" 
+        element={
+          <ProtectedRoute allowedRoles={['admin', 'corporate']}>
+            <CompanyDetail />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/companies/new" 
+        element={
+          <ProtectedRoute allowedRoles={['admin', 'corporate']}>
+            <CompanyForm />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/companies/edit/:id" 
+        element={
+          <ProtectedRoute allowedRoles={['admin', 'corporate']}>
+            <CompanyForm />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/employees" 
+        element={
+          <ProtectedRoute allowedRoles={['admin', 'corporate']}>
+            <Employees />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/employees/:id" 
+        element={
+          <ProtectedRoute allowedRoles={['admin', 'corporate']}>
+            <EmployeeDetail />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/employees/new" 
+        element={
+          <ProtectedRoute allowedRoles={['admin', 'corporate']}>
+            <EmployeeForm />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/employees/edit/:id" 
+        element={
+          <ProtectedRoute allowedRoles={['admin', 'corporate']}>
+            <EmployeeForm />
           </ProtectedRoute>
         } 
       />
