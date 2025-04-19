@@ -34,6 +34,8 @@ import Employees from "./pages/corporate/Employees";
 import EmployeeDetail from "./pages/corporate/EmployeeDetail";
 import EmployeeForm from "./pages/corporate/EmployeeForm";
 import { ThemeProvider } from "@/components/ui/theme-provider";
+import { OfflineIndicator } from "@/components/pwa/OfflineIndicator";
+import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 
 const queryClient = new QueryClient();
 
@@ -331,6 +333,8 @@ const App = () => (
           <BrowserRouter>
             <AppRoutes />
           </BrowserRouter>
+          <OfflineIndicator />
+          <InstallPrompt />
         </TooltipProvider>
       </AuthProvider>
     </ThemeProvider>
