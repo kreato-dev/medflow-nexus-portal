@@ -16,18 +16,10 @@ export function PWASettings() {
     try {
       const cleared = await clearCache();
       if (!cleared) {
-        toast({
-          title: 'Could not clear cache',
-          description: 'Cache API not available',
-          variant: 'destructive',
-        });
+        toast.error("Could not clear cache. Cache API not available");
       }
     } catch (error) {
-      toast({
-        title: 'Error clearing cache',
-        description: error instanceof Error ? error.message : 'Unknown error',
-        variant: 'destructive',
-      });
+      toast.error(error instanceof Error ? error.message : 'Unknown error clearing cache');
     } finally {
       setIsClearing(false);
     }
@@ -37,28 +29,19 @@ export function PWASettings() {
     setIsUpdating(true);
     try {
       await checkForUpdates();
-      toast({
-        title: 'Checking for updates',
-        description: 'Checking for application updates...',
-      });
+      toast.info("Checking for application updates...");
       
       // Wait a moment before allowing another update check
       setTimeout(() => setIsUpdating(false), 5000);
     } catch (error) {
-      toast({
-        title: 'Error checking for updates',
-        description: error instanceof Error ? error.message : 'Unknown error',
-      });
+      toast.error(error instanceof Error ? error.message : 'Unknown error checking for updates');
       setIsUpdating(false);
     }
   };
 
   const handleApplyUpdates = () => {
     updateServiceWorker();
-    toast({
-      title: 'Applying updates',
-      description: 'The application will refresh to apply updates.',
-    });
+    toast.info("The application will refresh to apply updates.");
     
     // Give the service worker a moment to activate
     setTimeout(() => {

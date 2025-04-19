@@ -12,8 +12,14 @@ export const isOnline = () => {
 // Check if the app is installed (running in standalone mode)
 export const isAppInstalled = () => {
   if (typeof window === 'undefined') return false;
-  return window.matchMedia('(display-mode: standalone)').matches || 
-         window.navigator.standalone === true;
+  
+  // Check if the app is running in standalone mode (PWA installed)
+  const displayMode = window.matchMedia('(display-mode: standalone)').matches;
+  
+  // iOS Safari-specific check - need to use `as any` because TypeScript doesn't recognize this property
+  const iosPwa = (window.navigator as any).standalone === true;
+  
+  return displayMode || iosPwa;
 };
 
 // Setup network listeners to detect online/offline status
